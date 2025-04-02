@@ -1,34 +1,22 @@
-use rand::Rng;
-use std::cmp::Ordering;
-use std::io;
+use rust_practice::Config;
+use std::env;
+use std::process;
 
 fn main() {
-    println!("Guess the number!");
-    let secret: u32 = rand::thread_rng().gen_range(1..=100);
-    println!("The secret number is {}", secret);
+    let args: Vec<String> = env::args().collect();
+    // let (query, file_path) = parse_config(&args);
+    // let config = parse_config(&args);
+    let config = Config::build(&args).unwrap_or_else(|err| {
+        println!("Problem parsing arguments: {err}");
+        process::exit(1);
+    });
 
-    loop {
-        println!("========= Please input your guess.");
-        let mut guess = String::new();
+    println!("Arguments: {:?}", args);
+    println!("Query: {}", config.query);
+    println!("In file {}", config.file_path);
 
-        io::stdin()
-            .read_line(&mut guess)
-            .expect("Failed to read line");
-
-        let guess: u32 = match guess.trim().parse() {
-            Ok(num) => num,
-            Err(_) => continue,
-        };
-
-        println!("You guessed: {guess}");
-
-        match guess.cmp(&secret) {
-            Ordering::Less => println!("Too small!"),
-            Ordering::Greater => println!("Too big!"),
-            Ordering::Equal => {
-                println!("You win!");
-                break;
-            }
-        }
+    if let Err(e) = rust_practice::run(config) {
+        println!("Application error: {e}");
+        process::exit(1);
     }
 }
